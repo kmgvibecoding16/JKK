@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Эко-карта Астаны — куда сдать и отдать</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f4f6f3; --card:#ffffff; --text:#1c2a22; --muted:#66756b; --line:#dfe5df;
+  --accent:#1f8a5b; --accent-ink:#ffffff; --chip:#eef2ee;
+  --land:#eef1e8; --water:#a9d3ec; --water-line:#8bbfdf; --grid:#dfe4d9; --park:#d6e8cc; --road:#ffffff;
+  --label:#7a877d; --shadow:0 2px 10px rgba(20,40,30,.12);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101612; --card:#18211b; --text:#e6efe8; --muted:#92a396; --line:#2a362d;
+    --accent:#3cc084; --accent-ink:#06210f; --chip:#222e25;
+    --land:#1b241d; --water:#1d3b52; --water-line:#2a5373; --grid:#243027; --park:#1f3323; --road:#2a362d;
+    --label:#7d8f82; --shadow:0 2px 10px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101612; --card:#18211b; --text:#e6efe8; --muted:#92a396; --line:#2a362d;
+  --accent:#3cc084; --accent-ink:#06210f; --chip:#222e25;
+  --land:#1b241d; --water:#1d3b52; --water-line:#2a5373; --grid:#243027; --park:#1f3323; --road:#2a362d;
+  --label:#7d8f82; --shadow:0 2px 10px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;line-height:1.4}
+header{padding:18px 16px 10px;max-width:1400px;margin:0 auto}
+h1{margin:0;font-size:clamp(22px,4vw,32px);letter-spacing:-.02em}
+h1 span{color:var(--accent)}
+.sub{margin:6px 0 0;color:var(--muted);font-size:15px;max-width:760px}
+.banner{max-width:1400px;margin:8px auto 0;padding:0 16px}
+.banner div{background:#fff4d6;color:#5b4500;border:1px solid #f0d98a;border-radius:10px;padding:8px 12px;font-size:13px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .banner div{background:#3a2f0c;color:#f3dc92;border-color:#5b4a14}}
+.controls{max-width:1400px;margin:0 auto;padding:10px 16px 6px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.search{flex:1 1 220px;min-width:180px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:15px}
+.group-label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-right:2px}
+.chip{border:1px solid var(--line);background:var(--chip);color:var(--text);border-radius:999px;padding:6px 11px;font-size:14px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;user-select:none}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;padding:9px 13px;font-size:14px;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn:hover{filter:brightness(.97)}
+.toggle{font-size:13px;color:var(--muted);display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+main{max-width:1400px;margin:0 auto;padding:6px 16px 28px;display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:960px){main{grid-template-columns:minmax(0,1fr) 390px}}
+.mapwrap{position:relative;background:var(--land);border:1px solid var(--line);border-radius:16px;overflow:hidden;height:62vh;min-height:380px;box-shadow:var(--shadow)}
+@media(min-width:960px){.mapwrap{height:calc(100vh - 250px);min-height:520px}}
+svg#map{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+svg#map.drag{cursor:grabbing}
+svg#map.pick{cursor:crosshair}
+.zoom{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+.zoom button{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:20px;cursor:pointer;box-shadow:var(--shadow)}
+.note{position:absolute;left:10px;top:10px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-size:11px;color:var(--muted)}
+.pickbar{position:absolute;left:50%;transform:translateX(-50%);top:10px;background:var(--accent);color:var(--accent-ink);padding:8px 14px;border-radius:999px;font-size:14px;font-weight:600;display:none;box-shadow:var(--shadow);white-space:nowrap}
+.legend{position:absolute;left:10px;bottom:10px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:11px;color:var(--muted)}
+.popup{max-height:calc(100% - 20px);overflow:auto;position:absolute;left:10px;right:10px;bottom:10px;max-width:420px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow);display:none}
+@media(min-width:960px){.popup{left:10px;right:auto;bottom:44px}}
+.popup h3{margin:0 28px 2px 0;font-size:17px}
+.popup .x{position:absolute;right:8px;top:6px;border:none;background:none;font-size:22px;color:var(--muted);cursor:pointer}
+.meta{font-size:13px;color:var(--muted);margin:2px 0}
+.meta b{color:var(--text);font-weight:600}
+.accepts{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+.tag{font-size:12px;padding:3px 8px;border-radius:999px;background:var(--chip);border:1px solid var(--line);display:inline-flex;gap:4px;align-items:center}
+.kind{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:6px;display:inline-block;margin-bottom:4px}
+.kind.rec{background:#dff3e8;color:#0f6a40}
+.kind.help{background:#fde3ee;color:#a3225b}
+.kind.haz{background:#ffe6cc;color:#a24a00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .kind.rec{background:#17402b;color:#8be0b6}:root:not([data-theme="light"]) .kind.help{background:#4a1e33;color:#f5a9c9}:root:not([data-theme="light"]) .kind.haz{background:#4d2a0a;color:#ffc58a}}
+.acc{margin:10px 0 4px;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:10px}
+.acc h5{margin:0 0 6px;font-size:13px;letter-spacing:.02em}
+.acc .g{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:8px 0 3px}
+.acc ul{list-style:none;margin:0;padding:0}
+.acc li{display:flex;gap:8px;align-items:flex-start;padding:3px 0;font-size:14px}
+.acc li .em{width:22px;text-align:center;flex:none}
+.acc li small{display:block;color:var(--muted);font-size:12px}
+.pls{margin:2px 0 6px 30px;border-left:2px solid var(--line);padding-left:10px}
+.pls div{font-size:13px;padding:2px 0;display:flex;gap:6px;align-items:baseline}
+.pls .ok{color:var(--text)}
+.pls .ok b{color:var(--accent)}
+.pls .no{color:var(--muted);text-decoration:line-through;opacity:.65}
+.pls .sym{font-size:16px;width:20px;flex:none;text-align:center}
+.pls .unk{font-size:12px;color:var(--muted);font-style:italic}
+.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.links a{font-size:13px;color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:5px 9px}
+.side{display:flex;flex-direction:column;min-height:0}
+.count{font-size:13px;color:var(--muted);margin:2px 2px 8px}
+.list{display:flex;flex-direction:column;gap:8px;overflow:auto;padding-right:2px}
+@media(min-width:960px){.list{max-height:calc(100vh - 290px)}}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px;cursor:pointer}
+.item:hover{border-color:var(--accent)}
+.item.sel{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 30%,transparent)}
+.item h4{margin:0;font-size:15px}
+.empty{padding:24px;text-align:center;color:var(--muted);background:var(--card);border:1px dashed var(--line);border-radius:12px}
+.overlay{position:fixed;inset:0;background:rgba(10,20,14,.55);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow:auto;z-index:50}
+.modal{background:var(--card);border-radius:16px;padding:18px;width:100%;max-width:520px;margin:auto;box-shadow:var(--shadow)}
+.modal h2{margin:0 0 10px;font-size:19px}
+.modal label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+.modal input[type=text],.modal textarea,.modal select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--text);font-size:15px;font-family:inherit}
+.modal textarea{min-height:70px;resize:vertical}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.coord{font-size:13px;color:var(--muted);margin-top:6px}
+footer{max-width:1400px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Эко-карта <span>Астаны</span></h1>
+  <p class="sub">Все пункты приёма вторсырья и вещей для помощи людям — на одной карте. Выберите, что хотите сдать или отдать, и увидите, куда ехать.</p>
+</header>
+
+<div class="banner" id="demoBanner"><div><b>Демонстрационные данные.</b> Точки с пометкой «пример» показывают, как будет выглядеть сайт. Замените их реальными организациями кнопкой «＋ Добавить пункт» или в массиве <code>DATA</code> в коде страницы.</div></div>
+
+<section class="controls">
+  <div class="row">
+    <input id="q" class="search" type="search" placeholder="Поиск: организация, адрес, «бутылки», «куртки»…">
+    <button class="btn primary" id="addBtn">＋ Добавить пункт</button>
+    <button class="btn" id="resetBtn">Сбросить фильтры</button>
+  </div>
+  <div class="row" id="chipsRec"></div>
+  <div class="row" id="chipsPl" style="display:none"></div>
+  <div class="row" id="chipsHaz"></div>
+  <div class="row" id="chipsHelp"></div>
+  <div class="row">
+    <label class="toggle"><input type="checkbox" id="showDemo" checked> Показывать примеры</label>
+    <button class="btn" id="exportBtn" style="padding:5px 10px;font-size:12px">Мои точки (JSON)</button>
+  </div>
+</section>
+
+<main>
+  <div class="mapwrap" id="mapwrap">
+    <svg id="map" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 950" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Схематичная карта Астаны"></svg>
+    <div class="note">Схематичная карта, не в масштабе</div>
+    <div class="pickbar" id="pickbar">Нажмите на карту, чтобы поставить точку</div>
+    <div class="zoom">
+      <button id="zin" aria-label="Приблизить">+</button>
+      <button id="zout" aria-label="Отдалить">−</button>
+      <button id="zhome" aria-label="Сбросить вид" style="font-size:15px">⌂</button>
+    </div>
+    <div class="legend">🟢 переработка &nbsp; 🟠 опасные отходы &nbsp; 🩷 помощь людям</div>
+    <div class="popup" id="popup"></div>
+  </div>
+
+  <aside class="side">
+    <div class="count" id="count"></div>
+    <div class="list" id="list"></div>
+  </aside>
+</main>
+
+<footer>Перед поездкой уточняйте часы работы и правила приёма у организации — они могут меняться. Данные вводятся вручную и могут быть неполными.<br>⚠ Просроченные лекарства, батарейки, ртутные лампы и химию нельзя выбрасывать в обычный мусор или смывать в канализацию — сдавайте только в специализированные пункты, в оригинальной или герметичной упаковке.</footer>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2>Добавить пункт приёма</h2>
+    <label>Название организации</label>
+    <input type="text" id="fName" placeholder="Например: Эко-пункт «Зелёный двор»">
+    <label>Тип</label>
+    <select id="fKind"><option value="rec">Переработка вторсырья</option><option value="haz">Опасные отходы (батарейки, лекарства…)</option><option value="help">Помощь людям (вещи, игрушки…)</option></select>
+    <label>Что принимают</label>
+    <div class="row" id="fCats" style="margin:0"></div>
+    <div class="row" id="fPl" style="margin:8px 0 0;display:none"></div>
+    <label>Адрес</label>
+    <input type="text" id="fAddr" placeholder="Улица, дом">
+    <label>Часы работы</label>
+    <input type="text" id="fHours" placeholder="Пн–Сб 10:00–18:00">
+    <label>Телефон / сайт</label>
+    <input type="text" id="fContact" placeholder="+7 ... или https://...">
+    <label>Примечание (необязательно)</label>
+    <textarea id="fNote" placeholder="Например: стекло только чистое, без крышек"></textarea>
+    <div class="coord"><button class="btn" id="fPick" type="button">📍 Указать точку на карте</button> <span id="fCoord">точка не выбрана</span></div>
+    <div class="actions">
+      <button class="btn" id="fCancel" type="button">Отмена</button>
+      <button class="btn primary" id="fSave" type="button">Сохранить</button>
+    </div>
+    <div class="coord" style="margin-top:10px">Сохранённые точки хранятся только в вашем браузере. Чтобы опубликовать их для всех, нажмите «Мои точки (JSON)» и добавьте в массив <code>DATA</code>.</div>
+  </div>
+</div>
+
+<div class="overlay" id="exportOverlay">
+  <div class="modal">
+    <h2>Мои точки (JSON)</h2>
+    <textarea id="exportArea" style="min-height:220px;font-family:monospace;font-size:12px" readonly></textarea>
+    <div class="actions"><button class="btn" id="exportCopy">Копировать</button><button class="btn primary" id="exportClose">Закрыть</button></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ДАННЫЕ. Здесь можно заменить примеры реальными пунктами.
+   cats: ключи из CATS. kind: "rec" (переработка), "haz" (опасные отходы) или "help" (помощь людям)
+   lat/lng — координаты. demo:true — пометка «пример».
+   ============================================================ */
+const CATS = {
+  glass:      {n:'Стекло',            e:'🍾', c:'#1f9d8a', g:'rec'},
+  plastic:    {n:'Пластик',           e:'🧴', c:'#e0a000', g:'rec'},
+  paper:      {n:'Бумага и картон',   e:'📦', c:'#9a7650', g:'rec'},
+  metal:      {n:'Металл и алюминий', e:'🥫', c:'#6a7b92', g:'rec'},
+  rubber:     {n:'Шины и резина',     e:'🛞', c:'#555a60', g:'rec'},
+  batteries:  {n:'Батарейки',         e:'🔋', c:'#c9402f', g:'haz'},
+  electronics:{n:'Электроника и техника', e:'💻', c:'#7b5ea7', g:'haz'},
+  medicines:  {n:'Лекарства с истекшим сроком', e:'💊', c:'#d6336c', g:'haz'},
+  lamps:      {n:'Ртутные лампы',     e:'💡', c:'#c98a00', g:'haz'},
+  chemicals:  {n:'Бытовая химия и краски', e:'🧪', c:'#8a4fbf', g:'haz'},
+  clothes:    {n:'Одежда и обувь',    e:'👕', c:'#d9428a', g:'help'},
+  toys:       {n:'Игрушки',           e:'🧸', c:'#ee8a1f', g:'help'},
+  books:      {n:'Книги',             e:'📚', c:'#3b7dd8', g:'help'},
+  other:      {n:'Другая помощь',     e:'🤝', c:'#2e9e5b', g:'help'}
+};
+
+const PLASTICS = {
+  '1':{c:'PET',  s:'♳', n:'бутылки от воды, соков, газировки'},
+  '2':{c:'HDPE', s:'♴', n:'канистры, флаконы от шампуня и бытовой химии, бутылки от молока'},
+  '3':{c:'PVC',  s:'♵', n:'трубы, линолеум, плёнка, некоторые бутылки'},
+  '4':{c:'LDPE', s:'♶', n:'плёнка, пакеты, мягкие крышки'},
+  '5':{c:'PP',   s:'♷', n:'стаканчики, контейнеры для еды, крышки'},
+  '6':{c:'PS',   s:'♸', n:'пенопласт, одноразовая посуда, лотки'},
+  '7':{c:'Другое',s:'♹', n:'прочие и смешанные пластики'}
+};
+
+const DATA = [
+  {id:'d1', plastics:['1','2'], name:'Пункт приёма стекла и пластика', org:'Организация (пример)', kind:'rec', cats:['glass','plastic'], addr:'Сарыарка, адрес уточняется', hours:'Пн–Сб 09:00–18:00', contact:'', note:'Бутылки и банки, чистые.', lat:51.175, lng:71.405, demo:true},
+  {id:'d2', plastics:['1','2','4','5'], name:'Эко-пункт: макулатура и картон', org:'Организация (пример)', kind:'rec', cats:['paper','plastic'], addr:'Район Алматы, адрес уточняется', hours:'Пн–Пт 10:00–17:00', contact:'', note:'', lat:51.150, lng:71.470, demo:true},
+  {id:'d3', name:'Приём металла и алюминия', org:'Организация (пример)', kind:'rec', cats:['metal'], addr:'Байконыр, адрес уточняется', hours:'Ежедневно 08:00–19:00', contact:'', note:'Банки, лом, цветной металл.', lat:51.142, lng:71.340, demo:true},
+  {id:'d4', name:'Сбор шин и резины', org:'Организация (пример)', kind:'rec', cats:['rubber'], addr:'Есиль, адрес уточняется', hours:'Пн–Сб 09:00–18:00', contact:'', note:'Автомобильные шины, резина.', lat:51.092, lng:71.435, demo:true},
+  {id:'d5', name:'Эко-бокс: батарейки и электроника', org:'Организация (пример)', kind:'haz', cats:['batteries','electronics'], addr:'ТРЦ, Есиль, уточняется', hours:'Ежедневно 10:00–22:00', contact:'', note:'Ящик у входа.', lat:51.122, lng:71.418, demo:true},
+  {id:'d6', plastics:['1','2','5'], name:'Центр вторсырья «всё в одном»', org:'Организация (пример)', kind:'rec', cats:['glass','plastic','paper','metal'], addr:'Нура, адрес уточняется', hours:'Пн–Сб 09:00–19:00', contact:'', note:'Раздельный приём.', lat:51.105, lng:71.505, demo:true},
+  {id:'d7', name:'Благотворительный склад одежды', org:'Благотворительный фонд (пример)', kind:'help', cats:['clothes','toys'], addr:'Сарыарка, адрес уточняется', hours:'Вт–Сб 11:00–17:00', contact:'', note:'Чистая одежда в хорошем состоянии.', lat:51.170, lng:71.455, demo:true},
+  {id:'d8', name:'Вторая жизнь вещей', org:'Социальный проект (пример)', kind:'help', cats:['clothes','books','other'], addr:'Есиль, адрес уточняется', hours:'Пн–Пт 12:00–18:00', contact:'', note:'Одежда, книги, бытовые вещи.', lat:51.088, lng:71.405, demo:true},
+  {id:'d9', name:'Игрушки — детям', org:'Фонд помощи детям (пример)', kind:'help', cats:['toys','books'], addr:'Район Алматы, адрес уточняется', hours:'Пн–Сб 10:00–17:00', contact:'', note:'Целые игрушки, без батареек.', lat:51.132, lng:71.525, demo:true},
+  {id:'d10', plastics:['1'], name:'Эко-точка у дома', org:'Организация (пример)', kind:'rec', cats:['plastic','glass'], addr:'Байконыр, адрес уточняется', hours:'Круглосуточно', contact:'', note:'Контейнеры во дворе.', lat:51.190, lng:71.365, demo:true},
+  {id:'d11', name:'Центр помощи нуждающимся', org:'Организация (пример)', kind:'help', cats:['clothes','other'], addr:'Нура, адрес уточняется', hours:'Пн–Пт 10:00–16:00', contact:'', note:'', lat:51.070, lng:71.470, demo:true},
+  {id:'d12', name:'Приём электроники и батареек', org:'Организация (пример)', kind:'haz', cats:['electronics','batteries','metal'], addr:'Есиль, адрес уточняется', hours:'Пн–Сб 10:00–19:00', contact:'', note:'', lat:51.112, lng:71.378, demo:true},
+  {id:'d13', name:'Приём просроченных лекарств', org:'Аптека / организация (пример)', kind:'haz', cats:['medicines'], addr:'Есиль, адрес уточняется', hours:'Ежедневно 09:00–21:00', contact:'', note:'Принимают таблетки и сиропы с истекшим сроком. Уточните, берут ли ампулы и мази.', lat:51.117, lng:71.445, demo:true},
+  {id:'d14', name:'Контейнер для лекарств', org:'Аптечная сеть (пример)', kind:'haz', cats:['medicines','batteries'], addr:'Сарыарка, адрес уточняется', hours:'Пн–Сб 09:00–20:00', contact:'', note:'', lat:51.165, lng:71.428, demo:true},
+  {id:'d15', name:'Пункт опасных отходов', org:'Эко-оператор (пример)', kind:'haz', cats:['lamps','chemicals','batteries','electronics'], addr:'Промзона, адрес уточняется', hours:'Пн–Пт 09:00–17:00', contact:'', note:'Ртутные лампы, краски, растворители, техника.', lat:51.185, lng:71.480, demo:true},
+  {id:'d16', name:'Приём лекарств и градусников', org:'Аптека (пример)', kind:'haz', cats:['medicines'], addr:'Район Алматы, адрес уточняется', hours:'Ежедневно 08:00–22:00', contact:'', note:'', lat:51.140, lng:71.500, demo:true},
+  {id:'d17', name:'Сбор старой техники и батареек', org:'Магазин электроники (пример)', kind:'haz', cats:['electronics','batteries'], addr:'Нура, адрес уточняется', hours:'Ежедневно 10:00–21:00', contact:'', note:'Телефоны, зарядки, мелкая бытовая техника.', lat:51.082, lng:71.490, demo:true},
+  {id:'r1', plastics:['1'], name:'Пункт приёма бутылок и батареек', org:'', kind:'rec', cats:['glass','plastic','batteries'], addr:'ул. Кунаева, 8', hours:'', contact:'', note:'Принимают бутылки и батарейки. Тип бутылок (стекло / пластик), часы работы и название организации уточняются.', lat:51.1275, lng:71.4375, mapq:'Астана, улица Кунаева 8'}
+];
+
+/* ================= Состояние ================= */
+const STORE_KEY = 'astana-eco-points-v1';
+let own = [];
+try { own = JSON.parse(localStorage.getItem(STORE_KEY) || '[]') || []; } catch(e){ own = []; }
+function saveOwn(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(own)); }catch(e){} }
+
+const state = { pl:new Set(), cats:new Set(), q:'', demo:true, sel:null, pick:false };
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ================= Проекция ================= */
+const W=1000, H=950, LAT0=51.22, LAT1=51.04, LNG0=71.30, LNG1=71.60;
+const proj = (lat,lng)=>[(lng-LNG0)/(LNG1-LNG0)*W, (LAT0-lat)/(LAT0-LAT1)*H];
+const unproj = (x,y)=>[LAT0 - y/H*(LAT0-LAT1), LNG0 + x/W*(LNG1-LNG0)];
+
+/* ================= Карта ================= */
+const svg = $('map'), NS='http://www.w3.org/2000/svg';
+function el(tag, attrs, parent){ const n=document.createElementNS(NS,tag); for(const k in attrs) n.setAttribute(k, attrs[k]); if(parent) parent.appendChild(n); return n; }
+
+const gBase = el('g',{},svg), gLand = el('g',{},svg), gMarks = el('g',{},svg);
+
+function smooth(pts){
+  let d='M'+pts[0][0].toFixed(1)+','+pts[0][1].toFixed(1);
+  for(let i=1;i<pts.length-1;i++){
+    const mx=(pts[i][0]+pts[i+1][0])/2, my=(pts[i][1]+pts[i+1][1])/2;
+    d+=' Q'+pts[i][0].toFixed(1)+','+pts[i][1].toFixed(1)+' '+mx.toFixed(1)+','+my.toFixed(1);
+  }
+  const l=pts[pts.length-1]; d+=' L'+l[0].toFixed(1)+','+l[1].toFixed(1);
+  return d;
+}
+
+function drawBase(){
+  el('rect',{x:-300,y:-300,width:W+600,height:H+600,fill:'var(--land)'},gBase);
+  for(let x=0;x<=W;x+=100) el('line',{x1:x,y1:-300,x2:x,y2:H+300,stroke:'var(--grid)','stroke-width':1},gBase);
+  for(let y=0;y<=H;y+=100) el('line',{x1:-300,y1:y,x2:W+300,y2:y,stroke:'var(--grid)','stroke-width':1},gBase);
+
+  // зелёные зоны (схематично)
+  [[51.118,71.468,70,36],[51.172,71.375,60,32],[51.085,71.455,55,30]].forEach(p=>{
+    const [x,y]=proj(p[0],p[1]); el('ellipse',{cx:x,cy:y,rx:p[2],ry:p[3],fill:'var(--park)',opacity:.8},gBase);
+  });
+
+  // река Есиль (схематично)
+  const river=[[51.083,71.605],[51.105,71.53],[51.118,71.47],[51.1268,71.436],[51.1345,71.405],[51.148,71.375],[51.165,71.345],[51.19,71.31],[51.205,71.295]].map(p=>proj(p[0],p[1]));
+  const d=smooth(river);
+  el('path',{d,fill:'none',stroke:'var(--water-line)','stroke-width':22,'stroke-linecap':'round','stroke-linejoin':'round',opacity:.55},gBase);
+  el('path',{d,fill:'none',stroke:'var(--water)','stroke-width':16,'stroke-linecap':'round','stroke-linejoin':'round'},gBase);
+
+  // районы
+  const dist=[['САРЫАРКА',51.19,71.425],['АЛМАТЫ',51.158,71.515],['БАЙКОНЫР',51.17,71.335],['ЕСИЛЬ',51.098,71.395],['НУРА',51.075,71.53]];
+  dist.forEach(([t,la,ln])=>{ const [x,y]=proj(la,ln);
+    const tx=el('text',{x,y,'text-anchor':'middle','font-size':30,'font-weight':700,fill:'var(--label)',opacity:.55,'letter-spacing':4,'font-family':'system-ui,sans-serif'},gBase); tx.textContent=t; });
+  const [rx,ry]=proj(51.1105,71.49);
+  const rt=el('text',{x:rx,y:ry,'text-anchor':'middle','font-size':16,'font-style':'italic',fill:'#4f93bd',transform:`rotate(-28 ${rx} ${ry})`,'font-family':'system-ui,sans-serif'},gBase); rt.textContent='р. Есиль';
+}
+drawBase();
+
+// ориентиры (размер в пикселях экрана → масштабируются через applyVB)
+const landmarks=[['Байтерек',51.1283,71.4304],['Хан Шатыр',51.1327,71.4033],['ЭКСПО',51.0885,71.4157]];
+const lmEls=[];
+landmarks.forEach(([t,la,ln])=>{
+  const [x,y]=proj(la,ln);
+  const g=el('g',{},gLand); g.dataset.x=x; g.dataset.y=y;
+  el('rect',{x:-4,y:-4,width:8,height:8,fill:'var(--label)',transform:'rotate(45)',opacity:.8},g);
+  const tx=el('text',{x:9,y:4,'font-size':11,fill:'var(--label)','font-family':'system-ui,sans-serif'},g); tx.textContent=t;
+  lmEls.push(g);
+});
+
+/* ---- вид (pan / zoom) ---- */
+let vb={x:0,y:0,w:W,h:H};
+function scalePx(){ const r=svg.getBoundingClientRect(); return Math.min(r.width/vb.w, r.height/vb.h) || 1; }
+function clampVB(){
+  vb.w=Math.max(110,Math.min(W,vb.w)); vb.h=vb.w*H/W;
+  vb.x=Math.max(-120,Math.min(W+120-vb.w,vb.x));
+  vb.y=Math.max(-120,Math.min(H+120-vb.h,vb.y));
+}
+function applyVB(){
+  clampVB();
+  svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+  const k=1/scalePx();
+  lmEls.forEach(g=>g.setAttribute('transform',`translate(${g.dataset.x},${g.dataset.y}) scale(${k})`));
+  gMarks.querySelectorAll('[data-id]').forEach(g=>{
+    g.setAttribute('transform',`translate(${g.dataset.x},${g.dataset.y}) scale(${k})`);
+  });
+}
+function toSvg(cx,cy){
+  const r=svg.getBoundingClientRect(), s=scalePx();
+  const ox=(r.width-vb.w*s)/2, oy=(r.height-vb.h*s)/2;
+  return [vb.x+(cx-r.left-ox)/s, vb.y+(cy-r.top-oy)/s];
+}
+function zoomAt(f,sx,sy){
+  const nw=Math.max(110,Math.min(W,vb.w/f)), r=nw/vb.w;
+  vb.x=sx-(sx-vb.x)*r; vb.y=sy-(sy-vb.y)*r; vb.w=nw; applyVB();
+}
+function centerZoom(f){ zoomAt(f, vb.x+vb.w/2, vb.y+vb.h/2); }
+$('zin').onclick=()=>centerZoom(1.5);
+$('zout').onclick=()=>centerZoom(1/1.5);
+$('zhome').onclick=()=>{ vb={x:0,y:0,w:W,h:H}; applyVB(); };
+svg.addEventListener('wheel',e=>{ e.preventDefault(); const [sx,sy]=toSvg(e.clientX,e.clientY); zoomAt(e.deltaY<0?1.2:1/1.2,sx,sy); },{passive:false});
+
+const ptrs=new Map(); let moved=0, downTarget=null, lastPinch=0;
+svg.addEventListener('pointerdown',e=>{
+  svg.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===1){ moved=0; downTarget=e.target; } else { moved=99; lastPinch=0; }
+  svg.classList.add('drag');
+});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId)) return;
+  const p=ptrs.get(e.pointerId), dx=e.clientX-p.x, dy=e.clientY-p.y;
+  p.x=e.clientX; p.y=e.clientY;
+  if(ptrs.size===2){
+    const [a,b]=[...ptrs.values()], dist=Math.hypot(a.x-b.x,a.y-b.y);
+    if(lastPinch){ const [sx,sy]=toSvg((a.x+b.x)/2,(a.y+b.y)/2); zoomAt(dist/lastPinch,sx,sy); }
+    lastPinch=dist; return;
+  }
+  moved+=Math.abs(dx)+Math.abs(dy);
+  const s=scalePx(); vb.x-=dx/s; vb.y-=dy/s; applyVB();
+});
+function endPtr(e){
+  const wasOne=ptrs.size===1; ptrs.delete(e.pointerId);
+  if(!ptrs.size) svg.classList.remove('drag');
+  if(e.type==='pointerup' && wasOne && moved<6){
+    const m=downTarget && downTarget.closest && downTarget.closest('[data-id]');
+    if(m && !state.pick){ select(m.dataset.id,true); }
+    else if(state.pick){ const [sx,sy]=toSvg(e.clientX,e.clientY); const [la,ln]=unproj(sx,sy); finishPick(la,ln); }
+    else { select(null); }
+  }
+}
+svg.addEventListener('pointerup',endPtr);
+svg.addEventListener('pointercancel',endPtr);
+
+/* ================= Фильтры ================= */
+function buildChips(){
+  const mk=(grp,host,label)=>{
+    const h=$(host); h.innerHTML='<span class="group-label">'+label+'</span>';
+    Object.keys(CATS).filter(k=>CATS[k].g===grp).forEach(k=>{
+      const b=document.createElement('button'); b.className='chip'; b.type='button'; b.setAttribute('aria-pressed','false'); b.dataset.k=k;
+      b.innerHTML=CATS[k].e+' '+esc(CATS[k].n);
+      b.onclick=()=>{ state.cats.has(k)?state.cats.delete(k):state.cats.add(k); b.setAttribute('aria-pressed',state.cats.has(k)); refresh(); };
+      h.appendChild(b);
+    });
+  };
+  mk('rec','chipsRec','Сдать на переработку'); mk('haz','chipsHaz','Опасные отходы'); mk('help','chipsHelp','Отдать людям');
+}
+buildChips();
+function buildPl(){
+  const h=$('chipsPl'); h.innerHTML='<span class="group-label">Виды пластика</span>';
+  Object.keys(PLASTICS).forEach(n=>{
+    const b=document.createElement('button'); b.type='button'; b.className='chip'; b.setAttribute('aria-pressed',state.pl.has(n));
+    b.title=PLASTICS[n].n; b.innerHTML=PLASTICS[n].s+' '+n+' '+PLASTICS[n].c;
+    b.onclick=()=>{ state.pl.has(n)?state.pl.delete(n):state.pl.add(n); b.setAttribute('aria-pressed',state.pl.has(n)); refresh(); };
+    h.appendChild(b);
+  });
+}
+buildPl();
+
+$('q').addEventListener('input',e=>{ state.q=e.target.value.trim().toLowerCase(); refresh(); });
+$('showDemo').addEventListener('change',e=>{ state.demo=e.target.checked; refresh(); });
+$('resetBtn').onclick=()=>{ state.cats.clear(); state.pl.clear(); state.q=''; $('q').value=''; document.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed','false')); refresh(); };
+
+function allPoints(){ return DATA.concat(own); }
+function visible(){
+  return allPoints().filter(p=>{
+    if(p.demo && !state.demo) return false;
+    if(state.cats.size){
+      const ok=[...state.cats].some(c=>{
+        if(!p.cats.includes(c)) return false;
+        if(c==='plastic' && state.pl.size) return !!(p.plastics && p.plastics.some(n=>state.pl.has(n)));
+        return true;
+      });
+      if(!ok) return false;
+    }
+    if(state.q){
+      const hay=[p.name,p.org,p.addr,p.note,p.cats.map(c=>CATS[c]?CATS[c].n:c).join(' ')].join(' ').toLowerCase();
+      if(!hay.includes(state.q)) return false;
+    }
+    return true;
+  });
+}
+
+/* ================= Отрисовка ================= */
+function renderMarkers(pts){
+  gMarks.innerHTML='';
+  pts.forEach(p=>{
+    const [x,y]=proj(p.lat,p.lng);
+    const main=CATS[p.cats[0]]||{c:'#2e9e5b',e:'📍'};
+    const g=el('g',{'data-id':p.id,style:'cursor:pointer'},gMarks); g.dataset.x=x; g.dataset.y=y;
+    const sel=state.sel===p.id;
+    if(sel) el('circle',{r:23,fill:'none',stroke:main.c,'stroke-width':3,opacity:.5},g);
+    el('circle',{r:sel?17:14,fill:main.c,stroke:p.kind==='help'?'#ff5fa8':(p.kind==='haz'?'#ff9a2e':'#ffffff'),'stroke-width':3},g);
+    const t=el('text',{'text-anchor':'middle',y:5,'font-size':sel?16:14},g); t.textContent=main.e;
+    if(p.cats.length>1){
+      el('circle',{cx:12,cy:-11,r:8,fill:'var(--card)',stroke:'var(--line)'},g);
+      const n=el('text',{x:12,y:-8,'text-anchor':'middle','font-size':10,'font-weight':700,fill:'var(--text)','font-family':'system-ui,sans-serif'},g); n.textContent='+'+(p.cats.length-1);
+    }
+    const title=el('title',{},g); title.textContent=p.name;
+  });
+  applyVB();
+  // выбранный — поверх остальных
+  const s=gMarks.querySelector('[data-id="'+(state.sel||'')+'"]'); if(s) gMarks.appendChild(s);
+}
+
+const GROUPS={rec:'Переработка',haz:'Опасные отходы',help:'Помощь людям'};
+function plasticBlock(p){
+  if(!p.plastics || !p.plastics.length) return '<div class="pls"><div class="unk">Виды пластика (маркировка 1–7) уточняются</div></div>';
+  return '<div class="pls">'+Object.keys(PLASTICS).map(n=>{
+    const t=PLASTICS[n], ok=p.plastics.includes(n);
+    return '<div class="'+(ok?'ok':'no')+'"><span class="sym">'+t.s+'</span><span>'+(ok?'✔ ':'✖ ')+'<b>№'+n+' '+t.c+'</b> — '+esc(t.n)+'</span></div>';
+  }).join('')+'</div>';
+}
+function acceptList(p){
+  let h='<div class="acc"><h5>Что принимают:</h5>';
+  ['rec','haz','help'].forEach(g=>{
+    const ks=p.cats.filter(k=>CATS[k] && CATS[k].g===g);
+    if(!ks.length) return;
+    h+='<div class="g">'+GROUPS[g]+'</div><ul>'+ks.map(k=>{
+      const d=p.details&&p.details[k];
+      return '<li><span class="em">'+CATS[k].e+'</span><span>'+esc(CATS[k].n)+(d?'<small>'+esc(d)+'</small>':'')+(k==='plastic'?plasticBlock(p):'')+'</span></li>';
+    }).join('')+'</ul>';
+  });
+  return h+'</div>';
+}
+const KIND={rec:'Переработка',haz:'Опасные отходы',help:'Помощь людям'};
+function tags(p){ return p.cats.map(k=>{const c=CATS[k]||{n:k,e:'•'}; const extra=(k==='plastic'&&p.plastics&&p.plastics.length)?' ('+p.plastics.join(', ')+')':''; return '<span class="tag">'+c.e+' '+esc(c.n)+extra+'</span>';}).join(''); }
+
+function renderList(pts){
+  $('count').textContent = pts.length ? 'Найдено пунктов: '+pts.length : '';
+  const L=$('list'); L.innerHTML='';
+  if(!pts.length){ L.innerHTML='<div class="empty">Ничего не найдено. Попробуйте убрать часть фильтров или изменить запрос.</div>'; return; }
+  pts.forEach(p=>{
+    const d=document.createElement('div'); d.className='item'+(state.sel===p.id?' sel':''); d.dataset.id=p.id;
+    d.innerHTML='<span class="kind '+p.kind+'">'+KIND[p.kind]+'</span>'
+      +(p.demo?' <span class="tag">пример</span>':'')
+      +'<h4>'+esc(p.name)+'</h4>'
+      +'<div class="meta">'+esc(p.org||'')+(p.addr?' · '+esc(p.addr):'')+'</div>'
+      +(state.sel===p.id?acceptList(p):'<div class="accepts">'+tags(p)+'</div>');
+    d.onclick=()=>select(p.id,false,true);
+    L.appendChild(d);
+  });
+}
+
+function renderPopup(){
+  const pop=$('popup'); const p=allPoints().find(x=>x.id===state.sel);
+  if(!p){ pop.style.display='none'; return; }
+  const q=encodeURIComponent(p.mapq||(p.name+' Астана'));
+  const gm=p.mapq?encodeURIComponent(p.mapq):(p.lat+','+p.lng);
+  pop.innerHTML='<button class="x" aria-label="Закрыть" id="pclose">×</button>'
+    +'<span class="kind '+p.kind+'">'+KIND[p.kind]+'</span>'+(p.demo?' <span class="tag">пример</span>':'')
+    +'<h3>'+esc(p.name)+'</h3>'
+    +(p.org?'<div class="meta"><b>'+esc(p.org)+'</b></div>':'')
+    +(p.addr?'<div class="meta">📍 '+esc(p.addr)+'</div>':'')
+    +(p.hours?'<div class="meta">🕒 '+esc(p.hours)+'</div>':'')
+    +(p.contact?'<div class="meta">☎ '+esc(p.contact)+'</div>':'')
+    +acceptList(p)
+    +(p.note?'<div class="meta">'+esc(p.note)+'</div>':'')
+    +'<div class="links">'
+      +'<a href="https://www.google.com/maps/search/?api=1&query='+gm+'" target="_blank" rel="noopener">Маршрут (Google Maps)</a>'
+      +'<a href="https://2gis.kz/astana/search/'+q+'" target="_blank" rel="noopener">Найти в 2ГИС</a>'
+      +(p.own?'<a href="#" id="pdel" style="color:#c0392b">Удалить</a>':'')
+    +'</div>';
+  pop.style.display='block';
+  $('pclose').onclick=()=>select(null);
+  const del=$('pdel'); if(del) del.onclick=ev=>{ ev.preventDefault(); if(confirm('Удалить эту точку?')){ own=own.filter(o=>o.id!==p.id); saveOwn(); state.sel=null; refresh(); } };
+}
+
+function select(id,fromMap,fromList){
+  state.sel=id||null; refresh();
+  if(state.sel){
+    const p=allPoints().find(x=>x.id===state.sel);
+    if(fromList && p){ // центрируем карту на выбранной точке
+      const [x,y]=proj(p.lat,p.lng); vb.w=Math.min(vb.w,420); vb.h=vb.w*H/W; vb.x=x-vb.w/2; vb.y=y-vb.h/2; applyVB();
+      $('mapwrap').scrollIntoView({block:'nearest',behavior:'smooth'});
+    }
+    if(fromMap){ const it=document.querySelector('.item[data-id="'+state.sel+'"]'); if(it) it.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+  }
+}
+
+function refresh(){
+  if(!state.cats.has('plastic') && state.pl.size){ state.pl.clear(); buildPl(); }
+  $('chipsPl').style.display = state.cats.has('plastic') ? 'flex' : 'none';
+  const pts=visible();
+  if(state.sel && !pts.some(p=>p.id===state.sel)) state.sel=null;
+  renderMarkers(pts); renderList(pts); renderPopup();
+  $('demoBanner').style.display = (DATA.some(p=>p.demo)) ? '' : 'none';
+}
+
+/* ================= Добавление пункта ================= */
+const draft={lat:null,lng:null,cats:new Set(),pl:new Set()};
+function buildFormCats(){
+  const h=$('fCats'); h.innerHTML='';
+  Object.keys(CATS).forEach(k=>{
+    const b=document.createElement('button'); b.type='button'; b.className='chip'; b.setAttribute('aria-pressed',draft.cats.has(k)); b.innerHTML=CATS[k].e+' '+esc(CATS[k].n);
+    b.onclick=()=>{ draft.cats.has(k)?draft.cats.delete(k):draft.cats.add(k); b.setAttribute('aria-pressed',draft.cats.has(k)); buildFormPl(); };
+    h.appendChild(b);
+  });
+}
+function buildFormPl(){
+  const h=$('fPl'); h.style.display=draft.cats.has('plastic')?'flex':'none'; h.innerHTML='<span class="group-label" style="width:100%">Какие виды пластика принимают</span>';
+  Object.keys(PLASTICS).forEach(n=>{
+    const b=document.createElement('button'); b.type='button'; b.className='chip'; b.setAttribute('aria-pressed',draft.pl.has(n)); b.title=PLASTICS[n].n; b.innerHTML=PLASTICS[n].s+' '+n+' '+PLASTICS[n].c;
+    b.onclick=()=>{ draft.pl.has(n)?draft.pl.delete(n):draft.pl.add(n); b.setAttribute('aria-pressed',draft.pl.has(n)); };
+    h.appendChild(b);
+  });
+}
+function openForm(){ buildFormCats(); buildFormPl(); updCoord(); $('overlay').style.display='flex'; }
+function closeForm(){ $('overlay').style.display='none'; }
+function updCoord(){ $('fCoord').textContent = draft.lat==null ? 'точка не выбрана' : 'выбрано: '+draft.lat.toFixed(4)+', '+draft.lng.toFixed(4); }
+function finishPick(la,ln){
+  state.pick=false; svg.classList.remove('pick'); $('pickbar').style.display='none';
+  draft.lat=la; draft.lng=ln; openForm();
+}
+$('addBtn').onclick=openForm;
+$('fCancel').onclick=closeForm;
+$('fPick').onclick=()=>{ closeForm(); state.pick=true; svg.classList.add('pick'); $('pickbar').style.display='block'; $('mapwrap').scrollIntoView({block:'center',behavior:'smooth'}); };
+$('fSave').onclick=()=>{
+  const name=$('fName').value.trim();
+  if(!name){ alert('Укажите название организации'); return; }
+  if(!draft.cats.size){ alert('Выберите, что принимают'); return; }
+  if(draft.lat==null){ alert('Укажите точку на карте'); return; }
+  const p={id:'u'+Date.now(), name, org:'', kind:$('fKind').value, cats:[...draft.cats], plastics:(draft.cats.has('plastic')&&draft.pl.size)?[...draft.pl].sort():undefined, addr:$('fAddr').value.trim(), hours:$('fHours').value.trim(), contact:$('fContact').value.trim(), note:$('fNote').value.trim(), lat:+draft.lat.toFixed(5), lng:+draft.lng.toFixed(5), own:true};
+  own.push(p); saveOwn();
+  ['fName','fAddr','fHours','fContact','fNote'].forEach(i=>$(i).value=''); draft.cats.clear(); draft.pl.clear(); draft.lat=draft.lng=null;
+  closeForm(); state.sel=p.id; refresh();
+};
+
+/* ================= Экспорт ================= */
+$('exportBtn').onclick=()=>{
+  const clean=own.map(({own:o,...r})=>r);
+  $('exportArea').value = clean.length ? JSON.stringify(clean,null,2) : '[] — вы ещё не добавляли свои точки';
+  $('exportOverlay').style.display='flex';
+};
+$('exportClose').onclick=()=>$('exportOverlay').style.display='none';
+$('exportCopy').onclick=()=>{ const a=$('exportArea'); a.select(); try{ document.execCommand('copy'); }catch(e){} };
+
+window.addEventListener('resize',applyVB);
+refresh();
+</script>
+</body>
+</html>
